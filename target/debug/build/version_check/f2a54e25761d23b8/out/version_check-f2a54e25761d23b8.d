@@ -1,0 +1,10 @@
+/tmp/claude-30033/-home-ritz-code-crates-akatela/daa93a72-4eff-42d5-bba9-5b53143d69d3/scratchpad/closure_probe/target/debug/build/version_check/f2a54e25761d23b8/out/version_check-f2a54e25761d23b8.d: /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs
+
+/tmp/claude-30033/-home-ritz-code-crates-akatela/daa93a72-4eff-42d5-bba9-5b53143d69d3/scratchpad/closure_probe/target/debug/build/version_check/f2a54e25761d23b8/out/libversion_check-f2a54e25761d23b8.rlib: /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs
+
+/tmp/claude-30033/-home-ritz-code-crates-akatela/daa93a72-4eff-42d5-bba9-5b53143d69d3/scratchpad/closure_probe/target/debug/build/version_check/f2a54e25761d23b8/out/libversion_check-f2a54e25761d23b8.rmeta: /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs /home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs
+
+/home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/lib.rs:
+/home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/version.rs:
+/home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/channel.rs:
+/home/ritz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/version_check-0.9.5/src/date.rs:
