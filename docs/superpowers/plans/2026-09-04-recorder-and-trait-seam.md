@@ -593,13 +593,23 @@ nsi-trait = { version = "0.3", path = "../nsi/crates/nsi-trait" }
 For each helper currently taking `&nsi::Context`, change the signature
 and add the import. For `nsi_render/mod.rs:181`:
 
+**The bound matters, and `R: Nsi` alone will not compile.** `R::Arg<'_>`
+is an opaque associated type, so `nsi::f32!` and friends -- which
+produce a concrete `nsi_ffi_wrap::Arg` -- fail to typecheck against it.
+Pin the associated type to the shared argument currency, parameterised
+by the context lifetime:
+
 ```rust
 use nsi_trait::Nsi;
 
-fn setup_scene<R: Nsi>(
+fn setup_scene<'ctx, R>(
     ctx: &R,
-    handles: &Handles,
-) -> Result<(), R::Error> {
+    handles: &NsiHandles,
+) -> Result<(), R::Error>
+where
+    R: Nsi + 'ctx,
+    for<'call> R: Nsi<Arg<'call> = nsi_ffi_wrap::Arg<'call, 'ctx>>,
+{
     ctx.create(&handles.camera_xform, nsi::TRANSFORM, None)?;
     ctx.connect(&handles.camera_xform, None, nsi::ROOT, "objects", None)?;
     // ... remaining body unchanged except for `?` on each call
