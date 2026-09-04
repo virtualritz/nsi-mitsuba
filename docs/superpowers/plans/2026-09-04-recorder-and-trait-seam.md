@@ -1363,11 +1363,11 @@ git commit -m "feat: add ɴsɪ scene node and attribute tables"
 
 - Consumes: `Scene` (Task 6), `OwnedArg::from_param` (Task 4),
   `ClassifyError` (Task 5).
-- Produces: `pub struct Recorder`, `Recorder::new()`,
+- Produces: `pub struct Recorder<'ctx>`, `Recorder::new()`,
   `Recorder::scene(&self) -> MutexGuard<'_, Scene>`,
   `Recorder::render_state(&self) -> RenderState`, `pub enum RenderState`,
-  and `impl Nsi for Recorder` with
-  `type Arg<'call> = nsi_ffi_wrap::Arg<'call, 'call>`,
+  and `impl<'ctx> Nsi for Recorder<'ctx>` with
+  `type Arg<'call> = nsi_ffi_wrap::Arg<'call, 'ctx>`,
   `type Error = ClassifyError`. Task 8 uses `scene()`.
 
 - [ ] **Step 1: Write the failing test**
@@ -1385,7 +1385,7 @@ mod tests {
 
     #[test]
     fn recorder_implements_nsi() {
-        assert_is_nsi::<Recorder>();
+        assert_is_nsi::<Recorder<'static>>();
     }
 
     #[test]
@@ -1441,6 +1441,7 @@ Prepend to `crates/nsi-mitsuba/src/recorder.rs`:
 use crate::{ClassifyError, OwnedArg, Scene};
 use nsi_ffi_wrap::Arg;
 use nsi_trait::{Action, Nsi, ParamValue};
+use core::marker::PhantomData;
 use std::sync::{Mutex, MutexGuard};
 
 /// Where the render is in its lifecycle.
@@ -1452,10 +1453,28 @@ pub enum RenderState {
 }
 
 /// Records an ɴsɪ scene without rendering it.
+///
+/// # Lifetime
+///
+/// `'ctx` mirrors [`nsi_ffi_wrap::Context`]'s lifetime parameter: it
+/// bounds borrowed Rust data handed in through `Reference`,
+/// `ReferenceSlice` and `Callback` arguments. The recorder **stores**
+/// those raw pointers in [`OwnedData::Reference`] so they survive to
+/// replay, so the data must outlive the recorder — exactly the
+/// guarantee `Context` needs, for exactly the same reason.
+///
+/// Do not be tempted to write `Arg<'call, 'call>` here, as
+/// `FfiApiAdapter` does. That is sound for the adapter, whose args come
+/// from C parameters the C side copies immediately, and unsound here,
+/// where the pointer outlives the call.
+///
+/// `PhantomData<*mut &'ctx ()>` makes the recorder invariant in `'ctx`,
+/// matching `InnerContext`. Most callers want `Recorder<'static>`.
 #[derive(Debug, Default)]
-pub struct Recorder {
+pub struct Recorder<'ctx> {
     scene: Mutex<Scene>,
     state: Mutex<RenderState>,
+    _marker: PhantomData<*mut &'ctx ()>,
 }
 
 impl Default for RenderState {
@@ -1464,7 +1483,7 @@ impl Default for RenderState {
     }
 }
 
-impl Recorder {
+impl<'ctx> Recorder<'ctx> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -1484,9 +1503,9 @@ impl Recorder {
     }
 }
 
-impl Nsi for Recorder {
+impl<'ctx> Nsi for Recorder<'ctx> {
     type Arg<'call>
-        = Arg<'call, 'call>
+        = Arg<'call, 'ctx>
     where
         Self: 'call;
 
