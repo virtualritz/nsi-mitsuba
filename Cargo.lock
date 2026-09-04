@@ -239,6 +239,13 @@ dependencies = [
 name = "nsi-mitsuba"
 version = "0.1.0"
 dependencies = [
+ "nsi-record",
+]
+
+[[package]]
+name = "nsi-record"
+version = "0.1.0"
+dependencies = [
  "indexmap",
  "nsi-ffi-wrap",
  "nsi-trait",

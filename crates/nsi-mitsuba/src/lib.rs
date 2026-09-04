@@ -1,18 +1,25 @@
-//! A Mitsuba 3 backend for the Nodal Scene Interface.
+//! Mitsuba 3 backend for the Nodal Scene Interface.
 //!
-//! This crate records an ɴsɪ scene — nodes, attributes and classified
-//! connections — and replays it. Recording is pure Rust and needs no
-//! renderer present.
+//! This crate holds only the **flush**: turning a recorded ɴsɪ scene
+//! into Mitsuba `Properties` trees and instantiating them through
+//! `PluginManager`. Everything upstream of that — recording nodes,
+//! attributes and classified connections, and replaying them as an
+//! `.nsi` stream — is renderer-agnostic and lives in [`nsi_record`].
 //!
-//! # The ɴsɪ copy contract
+//! The split exists because a second backend is plausible. MoonRay's
+//! `scene_rdl2` model (`SceneObject` / `SceneClass` / typed attributes /
+//! bindings / `Layer`) maps onto ɴsɪ at least as well as Mitsuba's
+//! `Properties` do, and in two places better: bindings carry named
+//! ports, which Mitsuba references do not, and `Layer` is a real
+//! assignment table, which is a closer target for dissolving ɴsɪ
+//! `attributes` nodes than a per-shape `bsdf` field.
 //!
-//! Every ɴsɪ argument except a `NSIType` pointer (`Type::Reference`) is
-//! copied during the call, so a caller may free its data as soon as the
-//! call returns. The recorder copies for the same reason a renderer
-//! does; it introduces no cost that a live context would not have paid.
-//! `Reference` is the exception: it is passed through, retained, and is
-//! why the recorder carries a context lifetime.
+//! So a backend crate owns exactly two things: the flush, and the
+//! renderer-specific half of the graph rewrites. `attributes`
+//! dissolution lands on `bsdf` + `visibility_mask` here and on `Layer`
+//! there; the classifier that labels those edges is shared.
+//!
+//! Nothing is implemented yet — this arrives in Phase 3, once the
+//! `babble` bindings exist.
 
-mod owned;
-
-pub use owned::{OwnedArg, OwnedData};
+pub use nsi_record;
