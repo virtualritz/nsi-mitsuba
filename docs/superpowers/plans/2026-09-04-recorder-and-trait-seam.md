@@ -29,8 +29,27 @@ renderer needed to build or test anything in this plan.
 - `nsi-trait` version `0.3`, by path during development.
 - No C++, no `bbl-*`, no Mitsuba dependency anywhere in this plan. Those
   begin at Phase 3.
+- **The ɴsɪ C API copy contract.** Every argument except a `NSIType`
+  pointer (our `Type::Reference`) is **copied during the call**. When the
+  call returns, the caller may drop or free the data immediately. This is
+  a deliberate design choice: a memcpy is negligible against a frame that
+  renders in seconds to hours, and it removes a whole class of pointer
+  lifetime bugs.
+
+  Two consequences the recorder is built around:
+
+  1. `OwnedArg::from_param` copying during the call is not an extra copy
+     the recorder invents — it is exactly what the renderer already does.
+     Recording is therefore free of any semantic difference from a live
+     3Delight context.
+  2. Only `Reference` data outlives the call. That is the entire reason
+     `Recorder` carries a `'ctx` parameter; every other argument type
+     would be satisfied by `'call`.
+
 - ɴsɪ `Type::Reference` is a raw host pointer, never an object link. It
-  is stored but never forwarded to a renderer.
+  is passed through rather than copied, is stored by the recorder so it
+  survives to replay, and is never forwarded to a renderer as a scene
+  reference.
 - Every connection is classified by `to_attr`. An unrecognised `to_attr`
   is an error, never a silent default.
 
@@ -726,6 +745,15 @@ Prepend to `crates/nsi-mitsuba/src/owned.rs`:
 //!
 //! The recorder outlives the calls that feed it, so it cannot hold a
 //! borrowed `Arg`. `OwnedArg` copies the payload out.
+//!
+//! This mirrors the ɴsɪ C API's own contract: every argument except a
+//! `NSIType` pointer is copied during the call, so a caller may free its
+//! data the moment the call returns. Copying here is therefore not an
+//! extra cost the recorder introduces — it is what a live renderer would
+//! have done anyway.
+//!
+//! [`OwnedData::Reference`] is the exception, and holds a raw pointer
+//! rather than a copy, because that is what ɴsɪ passes through.
 
 use core::ffi::c_void;
 use nsi_trait::{ParamValue, Type};
@@ -1456,12 +1484,16 @@ pub enum RenderState {
 ///
 /// # Lifetime
 ///
-/// `'ctx` mirrors [`nsi_ffi_wrap::Context`]'s lifetime parameter: it
-/// bounds borrowed Rust data handed in through `Reference`,
-/// `ReferenceSlice` and `Callback` arguments. The recorder **stores**
-/// those raw pointers in [`OwnedData::Reference`] so they survive to
-/// replay, so the data must outlive the recorder — exactly the
-/// guarantee `Context` needs, for exactly the same reason.
+/// `'ctx` mirrors [`nsi_ffi_wrap::Context`]'s lifetime parameter, and
+/// for the same reason. The ɴsɪ C API copies every argument during the
+/// call except a `NSIType` pointer — our `Type::Reference` — which is
+/// passed through and retained. So `'ctx` bounds exactly one thing:
+/// borrowed Rust data handed in through `Reference`, `ReferenceSlice`
+/// and `Callback`, whose pointers the recorder stores in
+/// [`OwnedData::Reference`] so they survive to replay.
+///
+/// Every other argument type would be satisfied by `'call`, because the
+/// recorder has already copied it by the time the call returns.
 ///
 /// Do not be tempted to write `Arg<'call, 'call>` here, as
 /// `FfiApiAdapter` does. That is sound for the adapter, whose args come
