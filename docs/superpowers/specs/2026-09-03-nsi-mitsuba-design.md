@@ -77,7 +77,9 @@ Rust workspace that any consumer can depend on cheaply.
 nsi-mitsuba/
 ├── Cargo.toml          workspace
 ├── crates/
-│   ├── nsi-mitsuba/    pure Rust: recorder + connection classifier
+│   ├── nsi-record/     pure Rust, renderer-agnostic: recorder,
+│   │                   connection classifier, .nsi stream
+│   ├── nsi-mitsuba/    the flush into Mitsuba, and nothing else
 │   ├── mitsuba-sys/    bbl-build generated bindings
 │   └── bbl-mitsuba/    C++ babble binding definitions
 └── docs/
@@ -173,7 +175,7 @@ where Dr.Jit fuses everything into a single JIT'd kernel.
 ### Data flow
 
 ```
-consumer  ->  T: Nsi  ->  nsi-mitsuba records
+consumer  ->  T: Nsi  ->  nsi-record records
                              |
                      render_control(Start)
                              |
