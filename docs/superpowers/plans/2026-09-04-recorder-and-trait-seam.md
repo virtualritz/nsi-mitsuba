@@ -156,11 +156,28 @@ mod tests {
     }
 
     #[test]
-    fn point_slice_reports_element_count_not_float_count() {
-        let points = [0.0f32, 0.0, 0.0, 1.0, 0.0, 0.0];
+    fn point_slice_reports_point_count_not_float_count() {
+        // PointSlice is nsi_tuple_data_array_def!(f32, .., 3), so it
+        // takes `&[[f32; 3]]` -- a flat `&[f32]` will not compile.
+        let points = [[0.0f32, 0.0, 0.0], [1.0, 0.0, 0.0]];
         let arg = point_slice!("P", &points);
         assert_eq!(arg.type_tag(), Type::Point);
         assert_eq!(arg.len(), 2);
+        assert_eq!(arg.as_c_param().unwrap().count, 2);
+    }
+
+    /// `count` is `data.len() / array_length`; `array_len(2)` over two
+    /// i32s is one element of length two, not two elements.
+    #[test]
+    fn array_len_divides_the_c_count() {
+        use std::num::NonZeroUsize;
+        let resolution = [1280i32, 720];
+        let arg = i32_slice!("resolution", &resolution)
+            .array_len(const { NonZeroUsize::new(2).unwrap() });
+        assert_eq!(arg.len(), 2);
+        let c = arg.as_c_param().unwrap();
+        assert_eq!(c.arraylength, 2);
+        assert_eq!(c.count, 1);
     }
 
     #[test]
@@ -247,6 +264,12 @@ impl<'a, 'b> ParamValue for Arg<'a, 'b> {
         to_trait_type(self.data.type_())
     }
 
+    /// The raw element count, matching `ArgDataMethods::len()`.
+    ///
+    /// This is *not* the C `count` field: that is `len() /
+    /// array_length`. For a `PointSlice` over `&[[f32; 3]]` this
+    /// returns the number of points, and the payload holds three
+    /// times as many `f32`s.
     #[inline]
     fn len(&self) -> usize {
         self.data.len()
@@ -268,7 +291,12 @@ impl<'a, 'b> ParamValue for Arg<'a, 'b> {
             data: self.data.as_c_ptr(),
             type_: self.data.type_() as core::ffi::c_int,
             arraylength: self.array_length.get() as core::ffi::c_int,
-            count: self.data.len(),
+            // `count` is `data.len() / array_length`, exactly as
+            // `get_c_param_vec` computes it. These two must stay
+            // identical or the FFI fast path disagrees with the slow
+            // one. `array_length` is `NonZeroUsize`, so this cannot
+            // divide by zero.
+            count: self.data.len() / self.array_length.get(),
             flags: self.flags,
         })
     }
@@ -710,12 +738,28 @@ mod tests {
 
     #[test]
     fn owns_a_point_slice_with_all_floats() {
-        let points = [0.0f32, 0.0, 0.0, 1.0, 0.0, 0.0];
+        let points = [[0.0f32, 0.0, 0.0], [1.0, 0.0, 0.0]];
         let arg = nsi::point_slice!("P", &points);
         let owned = OwnedArg::from_param(&arg);
         assert_eq!(owned.type_tag, Type::Point);
-        // Two points, three floats each: the storage keeps all six.
-        assert_eq!(owned.data, OwnedData::F32(points.to_vec()));
+        // Two points, three floats each: the storage keeps all six,
+        // flattened.
+        assert_eq!(
+            owned.data,
+            OwnedData::F32(vec![0.0, 0.0, 0.0, 1.0, 0.0, 0.0])
+        );
+    }
+
+    /// An `array_len`-ed argument must keep every scalar.
+    #[test]
+    fn owns_every_scalar_of_an_array_len_argument() {
+        use std::num::NonZeroUsize;
+        let resolution = [1280i32, 720];
+        let arg = nsi::i32_slice!("resolution", &resolution)
+            .array_len(const { NonZeroUsize::new(2).unwrap() });
+        let owned = OwnedArg::from_param(&arg);
+        assert_eq!(owned.array_length, 2);
+        assert_eq!(owned.data, OwnedData::I32(vec![1280, 720]));
     }
 
     #[test]
@@ -790,9 +834,11 @@ impl OwnedArg {
     /// Copy a borrowed parameter into owned storage.
     pub fn from_param<P: ParamValue>(param: &P) -> Self {
         let type_tag = param.type_tag();
-        let count = param.len();
-        // Total scalars = element count x components per element.
-        let scalars = count * components_per_element(type_tag);
+        // `ParamValue::len()` is the raw element count, not the C
+        // `count` field (which is `len / array_length`). Using the
+        // divided value here would under-read an `array_len`-ed
+        // argument and silently truncate it.
+        let scalars = param.len() * components_per_element(type_tag);
 
         let c = param
             .as_c_param()
@@ -1885,7 +1931,9 @@ fn write_scalars<W: Write, T: std::fmt::Display>(
     write!(out, "{}", joined.join(" "))
 }
 
-/// Number of elements, not scalars: a two-point `P` is 2, not 6.
+/// The ɴsɪ stream `count` field: elements, then divided by
+/// `array_length`. A two-point `P` is 2; a `resolution` of two i32s
+/// with `array_len(2)` is 1.
 fn element_count(arg: &OwnedArg) -> usize {
     let scalars = match &arg.data {
         OwnedData::F32(v) => v.len(),
@@ -1900,7 +1948,8 @@ fn element_count(arg: &OwnedArg) -> usize {
         Type::MatrixF32 | Type::MatrixF64 => 16,
         _ => 1,
     };
-    scalars / per
+    // `array_length` is never zero -- it mirrors a `NonZeroUsize`.
+    scalars / per / arg.array_length.max(1)
 }
 
 /// ɴsɪ stream type names.
