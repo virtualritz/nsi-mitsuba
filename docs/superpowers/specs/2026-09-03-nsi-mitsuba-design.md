@@ -86,12 +86,17 @@ nsi-mitsuba/
 It depends on `nsi-trait` by path during development, by version once
 published.
 
-### `nsi-mitsuba` (pure Rust)
+### `nsi-record` (pure Rust, renderer-agnostic)
 
 Implements `nsi_trait::Nsi`. It is a **recorder**, not a renderer: a node
 table, an attribute store, a connection graph, and a `render_control`
-state machine. It holds no C++ and can be tested with no renderer
-present.
+state machine. It holds no C++, is specific to no renderer, and can be
+tested with none present.
+
+Split out from `nsi-mitsuba` because a second backend is plausible; see
+[A second backend](#a-second-backend). A backend crate owns only the
+flush into its own scene representation, plus the renderer-specific half
+of the graph rewrites.
 
 `Nsi` has nine methods to satisfy: `create`, `delete`, `set_attribute`,
 `set_attribute_at_time`, `delete_attribute`, `connect`, `disconnect`,
@@ -108,9 +113,49 @@ interior mutability.
 
 Generated bindings, built by `bbl-build` from `bbl-mitsuba`.
 
-### `nsi-osl` (deferred)
+### `nsi-osl` (deferred, renderer-agnostic)
 
 Generic OSL. Last phase; see Risks.
+
+Shareable, and unusually cleanly, because ɴsɪ's shader model *is* OSL's
+model -- 3Delight is an OSL renderer, so ɴsɪ was designed around it.
+`connect(shader, "outColor", shader2, "inColor")` maps 1:1 onto OSL's
+`ConnectShaders(from_layer, from_param, to_layer, to_param)`, which is
+the same construct that needs an adapter on the Mitsuba side.
+
+This crate would hold: `.osl` -> `.oso` compilation and `.oso` loading;
+the `ShadingSystem` lifetime; ɴsɪ shader graph -> OSL `ShaderGroup`; and
+parameter binding, whose type set coincides exactly with ɴsɪ's.
+
+What cannot be shared, and dominates the schedule: the
+`RendererServices` subclass (texture, trace, `get_matrix`, attribute
+queries), `ShaderGlobals` population from the host's hit record, closure
+evaluation into the host's own BSDF representation, and OptiX PTX
+linking where GPU applies. The shared half is the smaller half.
+
+### A second backend
+
+Nothing above the flush is Mitsuba-specific, so a second backend is
+cheap to add and the structure anticipates one.
+
+MoonRay (`OpenMoonRay`, Apache-2.0, active) is the obvious candidate.
+Its `scene_rdl2` model maps onto ɴsɪ at least as well as Mitsuba's
+`Properties` do -- `SceneObject` is a handled node, `SceneClass` a node
+type with declared typed attributes, and `.rdla`/`.rdlb` are its stream
+formats -- and in two places better. Attribute **bindings** carry named
+ports, which Mitsuba references do not. And `Layer` is a real
+geometry-to-material assignment table, a closer target for dissolving
+ɴsɪ `attributes` nodes than a per-shape `bsdf` field.
+
+MoonRay has no OSL either, so it carries the same requirement.
+
+Two caveats. MoonRay is a CMake build over OpenVDB, Embree, ISPC and
+OpenImageIO, normally done in Docker -- treat it as a constraint to
+preserve rather than something to build casually. And should it ever be
+picked up, it looks like the easier OSL host: `BsdfBuilder` /
+`BsdfComponent` is already a closure-shaped lobe-assembly API, and
+MoonRay's ISPC shading aligns with OSL's batched 8/16-wide CPU mode,
+where Dr.Jit fuses everything into a single JIT'd kernel.
 
 ### Upstream changes in `nsi`
 
