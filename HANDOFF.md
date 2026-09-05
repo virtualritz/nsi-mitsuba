@@ -4,15 +4,19 @@ Written 2026-09-05. Read `specs/README.md` first, then this.
 
 ## What Exists
 
-`nsi-record`, complete and tested. It records an ɴsɪ scene, classifies
-every connection, resolves ɴsɪ's graph semantics into flat facts, and
-replays the scene as a `.nsi` stream. 43 tests pass.
+Specs. The crate is a stub.
 
-The fidelity gate is the part worth trusting: one generic `build`
-function drives both a live 3Delight `apistream` context and the
-recorder, and the two streams are compared. They match.
+The renderer-agnostic half — recording, connection classification, graph
+resolution and `.nsi` replay — moved to `nsi-intermediate` in the
+[`nsi`](https://github.com/virtualritz/nsi) workspace once
+[`nsi-moonray`](https://github.com/virtualritz/nsi-moonray) made its
+renderer-agnosticism structural. Its spec went with it, as
+`nsi/specs/003-nsi-intermediate-representation`; spec `001` here is
+retired and keeps one line in the index, per blueprints.
 
-`nsi-mitsuba` is a documented stub.
+That crate is done and verified: a recorded scene replays as a `.nsi`
+stream token-identical to what 3Delight 2.9.207 writes for the same
+calls, one generic function driving both sides.
 
 ## What To Do Next
 
@@ -32,34 +36,6 @@ it renders, with materials on the wrong shapes. Nothing before this task
 can catch it.
 
 ## What Would Bite You
-
-**A missing 3Delight makes the stream test fail, not pass.** Do not read
-its absence as permission to mark contract rows `Covered`.
-`001/quickstart.md` shows how to confirm the reference side really ran.
-
-**Motion blur is a capability gap, not a bug to fix.** Mitsuba 3 cannot
-do it: `AnimatedTransform` does not exist in `core/transform.h` and its
-binding is commented out -- it was dropped after Mitsuba 2. Sensors do
-have `shutter_open`/`shutter_close` and rays carry a `time`, so the
-plumbing exists, but nothing in the scene varies with it.
-
-That makes it a regression against 3Delight. But **ɴsɪ always returns an
-image** -- refusing is not something a farm can use -- so the backend
-renders sharp and reports the limitation rather than erroring
-(`002` TB.1).
-
-What is offered instead is a **motion vector pass**, which needs no
-Mitsuba changes: the `aov` integrator already emits `position` and
-`shape_index`, and the recorded t0/t1 transforms supply the rest
-(`002` User Story 4). That pass is what makes `001` T3.5 worth doing for
-this backend after all. Note the caveat: integer AOVs are fractional
-under a wide reconstruction filter, so the pass needs `box` width 1 at
-1 spp.
-
-**`nsi-record` depends on `nsi` as a git dependency**, pinned by
-`Cargo.lock`. Under the `[patch]` override in `README.md` it instead
-tracks a local working tree, uncommitted changes included, and a red
-test here may then originate there.
 
 **The build machine matters.** Mitsuba pulls Dr.Jit, Embree and LLVM.
 The machine this was developed on has 14 GiB and was driven into swap by

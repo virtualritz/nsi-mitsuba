@@ -11,19 +11,22 @@ first.
 
 | # | Surface | Status |
 | --- | --- | --- |
-| [001](001-nsi-scene-recording/) | ɴsɪ scene recording and resolution | Implemented; `Partial` and `Open` rows remain |
+| 001 | *Retired.* Was "ɴsɪ scene recording and resolution". The surface moved to the `nsi` workspace as `nsi-intermediate`; its spec is [`nsi/specs/003-nsi-intermediate-representation`](https://github.com/virtualritz/nsi/tree/master/specs/003-nsi-intermediate-representation). |
 | [002](002-mitsuba-backend/) | Mitsuba 3 backend | Not started; blocked on a build host |
 
 ## Coverage Order
 
-1. **001** — recording, classification, resolution, replay. Foundational:
-   every backend depends on it and it needs no renderer.
-2. **002** — the first backend. Retires the C++ risk.
-3. Native materials, then NURBS tessellation, then generic OSL. Each is
+1. **002** — the backend itself. Retires the C++ risk.
+2. Native materials, then NURBS tessellation, then generic OSL. Each is
    a surface of its own once 002 renders.
 
-A second backend (MoonRay) is anticipated but unstarted. Its existence
-is why 001 is renderer-agnostic; see `002/research.md` D5.
+Everything upstream of the flush lives in `nsi-intermediate`. A second
+backend now exists as [`nsi-moonray`](https://github.com/virtualritz/nsi-moonray),
+which is what made that separation structural rather than notional; see
+`002/research.md` D5.
+
+Spec numbers are never reused or renumbered, so 001 keeps its retired
+line above rather than being deleted.
 
 ## Definition Of Covered
 

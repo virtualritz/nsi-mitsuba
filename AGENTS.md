@@ -23,31 +23,35 @@ Project-specific specs live in `specs/`. Shared rules and templates live in
 
 ## This Repository
 
-Two crates:
+One crate, `nsi-mitsuba`: the Mitsuba 3 flush, and nothing else. A stub
+today.
 
-- `nsi-record` — renderer-agnostic. Records an ɴsɪ scene, classifies its
-  connections, resolves its graph semantics, and replays it as a `.nsi`
-  stream. No renderer needed to build or test it.
-- `nsi-mitsuba` — the Mitsuba 3 flush. A stub today.
+Everything above the flush lives in `nsi-intermediate`, in the
+[`nsi`](https://github.com/virtualritz/nsi) workspace, and is shared
+with [`nsi-moonray`](https://github.com/virtualritz/nsi-moonray).
 
-The split is deliberate: nothing above the flush is Mitsuba-specific, so
-a second backend costs only its own flush. See
-`specs/002-mitsuba-backend/research.md` D5.
+**If a behaviour is wanted by every backend, it belongs upstream, not
+here.** Transform composition and `attributes` dissolution are upstream
+for that reason. What lands here is Mitsuba-specific: `Properties`,
+`PluginManager`, and the renderer-specific half of the graph rewrites --
+`attributes` dissolution reaches `bsdf` + `visibility_mask` here and a
+`Layer` entry in MoonRay, from the same classified edges.
 
 ## Local Dependencies
 
-`nsi-record` depends on [`nsi`](https://github.com/virtualritz/nsi) as a
-git dependency, pinned by `Cargo.lock`. The trait seam it relies on
-landed upstream in `a9abbb0` and `b092555`.
+Depends on `nsi-intermediate` from the `nsi` repository, as a git
+dependency pinned by `Cargo.lock`. Alias it if the full name grates:
 
-When working on both at once, use the `[patch]` block in `README.md` to
-point at a local checkout. Under that patch this crate tracks that
-working tree including uncommitted changes, so a red test here may
-originate there.
+```rust
+use nsi_intermediate as nsi_ir;
+```
+
+When working on both at once, use the `[patch]` block in `README.md`.
 
 ## Before Claiming Anything Works
 
-`specs/001-nsi-scene-recording/contracts/stream.md` is the fidelity gate,
-and it needs a working 3Delight. **A missing 3Delight makes that test
-fail, not pass** — do not read its absence as licence to mark rows
-`Covered`. `quickstart.md` shows how to confirm the reference side ran.
+Every contract row in `specs/002-mitsuba-backend/` is `Open`. Nothing
+here is implemented, and the first gate is not code: compile a file that
+includes `<mitsuba/render/scene.h>` and link it. If Mitsuba's headers do
+not work outside its own build tree, the answer is `pyo3` over its
+nanobind API, not more C++. See `002/research.md` D3.

@@ -7,4 +7,6 @@ description = "Mitsuba 3 backend for the Nodal Scene Interface – ɴsɪ."
 repository = "https://github.com/virtualritz/nsi-mitsuba/"
 
 [dependencies]
-nsi-record = { version = "0.1", path = "../nsi-record" }
+# The renderer-agnostic IR now lives in the nsi workspace, beside the
+# trait it implements. Alias it as `nsi_ir` if the full name grates.
+nsi-intermediate = { git = "https://github.com/virtualritz/nsi.git" }

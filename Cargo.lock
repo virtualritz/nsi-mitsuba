@@ -221,7 +221,7 @@ dependencies = [
 [[package]]
 name = "nsi-ffi-wrap"
 version = "0.9.0"
-source = "git+https://github.com/virtualritz/nsi.git#3931d83abf2ad832a1d92ce56543256a3330fda6"
+source = "git+https://github.com/virtualritz/nsi.git#aba1769d165eda5be4b1c02d308b605ca1cc3b2d"
 dependencies = [
  "dlopen2",
  "enum_dispatch",
@@ -237,15 +237,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "nsi-mitsuba"
+name = "nsi-intermediate"
 version = "0.1.0"
-dependencies = [
- "nsi-record",
-]
-
-[[package]]
-name = "nsi-record"
-version = "0.1.0"
+source = "git+https://github.com/virtualritz/nsi.git#aba1769d165eda5be4b1c02d308b605ca1cc3b2d"
 dependencies = [
  "indexmap",
  "nsi-ffi-wrap",
@@ -253,9 +247,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nsi-mitsuba"
+version = "0.1.0"
+dependencies = [
+ "nsi-intermediate",
+]
+
+[[package]]
 name = "nsi-sys"
 version = "0.9.0"
-source = "git+https://github.com/virtualritz/nsi.git#3931d83abf2ad832a1d92ce56543256a3330fda6"
+source = "git+https://github.com/virtualritz/nsi.git#aba1769d165eda5be4b1c02d308b605ca1cc3b2d"
 dependencies = [
  "bindgen",
  "bitflags",
@@ -264,7 +265,7 @@ dependencies = [
 [[package]]
 name = "nsi-trait"
 version = "0.3.0"
-source = "git+https://github.com/virtualritz/nsi.git#3931d83abf2ad832a1d92ce56543256a3330fda6"
+source = "git+https://github.com/virtualritz/nsi.git#aba1769d165eda5be4b1c02d308b605ca1cc3b2d"
 dependencies = [
  "bitflags",
 ]

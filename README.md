@@ -1,8 +1,7 @@
 # `nsi-mitsuba`
 
 An [ɴsɪ](https://nsi.readthedocs.io/) backend on
-[Mitsuba 3](https://github.com/mitsuba-renderer/mitsuba3), and the
-renderer-agnostic recording layer beneath it.
+[Mitsuba 3](https://github.com/mitsuba-renderer/mitsuba3).
 
 ɴsɪ today means 3Delight: a closed-source binary and its closed-source
 OSL shaders. This is a second, open-source renderer behind the same
@@ -12,18 +11,15 @@ interface.
 
 | Crate | What it is | State |
 | --- | --- | --- |
-| [`nsi-record`](crates/nsi-record) | Records an ɴsɪ scene, classifies its connections, resolves its graph semantics, replays it as `.nsi`. Renderer-agnostic. | Implemented, 43 tests |
 | [`nsi-mitsuba`](crates/nsi-mitsuba) | The flush into Mitsuba. | Stub |
 
-`nsi-record` needs no renderer to build or test. Everything above the
-flush is renderer-agnostic, so a second backend — MoonRay is the
-candidate — costs only its own flush.
+Everything above the flush lives in
+[`nsi-intermediate`](https://github.com/virtualritz/nsi), in the `nsi`
+workspace, and is shared with
+[`nsi-moonray`](https://github.com/virtualritz/nsi-moonray). A backend
+costs only its own flush.
 
 ## Status
-
-`nsi-record` is done and verified: a recorded scene replays as a `.nsi`
-stream **token-identical to what 3Delight 2.9.207 writes for the same
-calls**, with one generic function driving both sides.
 
 The Mitsuba flush is not started. It needs a host that can build Mitsuba
 (Dr.Jit, Embree, LLVM), which is a precondition rather than a tuning
@@ -34,22 +30,19 @@ matter.
 ```bash
 git clone https://github.com/virtualritz/nsi-mitsuba.git
 cd nsi-mitsuba
-cargo test --workspace
+cargo build --workspace
 ```
 
 [`nsi`](https://github.com/virtualritz/nsi) resolves as a git
-dependency, pinned by `Cargo.lock`, so no sibling checkout is needed.
-
-To develop against a local `nsi`, add to the workspace `Cargo.toml`:
+dependency, pinned by `Cargo.lock`. To develop against a local
+checkout, add to the workspace `Cargo.toml`:
 
 ```toml
 [patch."https://github.com/virtualritz/nsi.git"]
-nsi-ffi-wrap = { path = "../nsi/crates/nsi-ffi-wrap" }
-nsi-trait = { path = "../nsi/crates/nsi-trait" }
+nsi-intermediate = { path = "../nsi/crates/nsi-intermediate" }
 ```
 
-The stream test needs a working 3Delight, and **fails rather than skips
-without it**. See `specs/001-nsi-scene-recording/quickstart.md`.
+There is nothing to test yet — see `specs/002-mitsuba-backend/`.
 
 ## Documentation
 
