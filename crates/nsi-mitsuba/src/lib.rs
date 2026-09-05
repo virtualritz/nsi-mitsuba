@@ -20,9 +20,12 @@
 //! dissolution lands on `bsdf` + `visibility_mask` here and on `Layer`
 //! there; the classifier that labels those edges is shared.
 //!
-//! Nothing is implemented yet. It needs a host that can build
-//! Mitsuba, and a hand-written `extern "C"` shim -- see
-//! `specs/002-mitsuba-backend/`.
+//! Nothing is implemented yet, but the build host is no longer the
+//! obstacle: Mitsuba builds, and the first gate — that its headers work
+//! in a translation unit outside its own build tree — passed on
+//! 2026-09-05. What remains is the hand-written `extern "C"` shim plus
+//! `bindgen`; see `specs/002-mitsuba-backend/`. Building Mitsuba is
+//! documented in this crate's `README.md`.
 
 pub use nsi_intermediate;
 

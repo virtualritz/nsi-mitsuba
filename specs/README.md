@@ -12,7 +12,7 @@ first.
 | # | Surface | Status |
 | --- | --- | --- |
 | 001 | *Retired.* Was "ɴsɪ scene recording and resolution". The surface moved to the `nsi` workspace as `nsi-intermediate`; its spec is [`nsi/specs/003-nsi-intermediate-representation`](https://github.com/virtualritz/nsi/tree/master/specs/003-nsi-intermediate-representation). |
-| [002](002-mitsuba-backend/) | Mitsuba 3 backend | Not started; blocked on a build host |
+| [002](002-mitsuba-backend/) | Mitsuba 3 backend | Build and header gates `Covered` (T2.1, T2.2); the shim itself is unstarted |
 
 ## Coverage Order
 

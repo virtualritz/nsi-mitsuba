@@ -10,10 +10,18 @@
 // point has to touch, and `scene.h` transitively pulls in the CRTP-heavy
 // render classes that make this uncertain in the first place.
 
+// <cmath> before the Mitsuba headers: mitsuba/render/kdtree.h calls
+// std::nextafter without including <cmath>. Mitsuba's own translation
+// units pull it in transitively before reaching that header, so the bug
+// is latent in its build and only surfaces in a consumer's. Finding this
+// is what the gate is for; a shim header must do the same.
+#include <cmath>
+
 #include <mitsuba/core/properties.h>
 #include <mitsuba/render/scene.h>
 
 #include <cstdio>
+#include <string>
 
 int main() {
     // Instantiating Properties is what `contracts/shim.md` asks for: it
@@ -22,13 +30,15 @@ int main() {
     props.set("fov", 45.0);
 
     // Read it back, so the optimiser cannot discard the object and turn a
-    // link failure into a silent pass.
+    // link failure into a silent pass. plugin_name() returns a
+    // std::string_view, which is not null-terminated.
     if (props.plugin_name() != "perspective") {
         std::fprintf(stderr, "probe: unexpected plugin name\n");
         return 1;
     }
 
+    const std::string name(props.plugin_name());
     std::printf("probe: Properties(\"%s\") constructed and read back\n",
-                props.plugin_name().c_str());
+                name.c_str());
     return 0;
 }

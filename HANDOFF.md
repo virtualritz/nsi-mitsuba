@@ -18,22 +18,32 @@ That crate is done and verified: a recorded scene replays as a `.nsi`
 stream token-identical to what 3Delight 2.9.207 writes for the same
 calls, one generic function driving both sides.
 
+`nsi-mitsuba` is still a stub, but no longer a blocked one: Mitsuba 3
+builds here and its headers are proven usable from outside its build
+tree (T2.1, T2.2). See `crates/nsi-mitsuba/README.md`.
+
 ## What To Do Next
 
-`specs/002-mitsuba-backend/tasks.md`, in order. Two tasks matter more
-than the rest:
+`specs/002-mitsuba-backend/tasks.md`, in order. The task that matters
+most is now T1.10; T2.2 is done, and its result is recorded below
+because it constrains everything after it.
 
-**T2.2, the standalone header probe.** Compile a file that includes
-`<mitsuba/render/scene.h>`, instantiates `Properties`, and links. Do
-this *before* writing any shim. Every Mitsuba render class is a
-two-parameter template with CRTP, so this is genuinely uncertain. The
-probe lives at `probe/`; run it with
+**T2.2, the standalone header probe, has passed** — 2026-09-05, against
+Mitsuba `609be13`. This was the first gate and the C++ risk it guarded
+is retired: the headers work in a translation unit outside Mitsuba's own
+build tree, so the shim is an ordinary `cc`-built crate and does not
+have to move inside Mitsuba's CMake. Re-run it any time with
 `MITSUBA_DIR=/path/to/mitsuba3/build ./probe/run.sh`.
 
-If it fails, the answer is to build the shim inside Mitsuba's own CMake
-tree, where the flags match by construction. It is *not* `pyo3`, which
-was the recorded fallback until 2026-09-05 and is now rejected —
-`002/research.md` D3.
+It bought three constraints, all in `002/research.md` D6, and all of
+them bind `mitsuba-sys` at T1.2: compile as **`gnu++17`** (not C++20),
+include **`<cmath>` before any Mitsuba header** (`kdtree.h` calls
+`std::nextafter` without it — latent in Mitsuba's build, fatal in a
+consumer's), and **derive the 25 include paths from Mitsuba's
+`compile_commands.json`** rather than maintaining a list.
+
+So the next task is **T1.1**, `mi_props_*` and `mi_last_error`. Building
+Mitsuba is documented in `crates/nsi-mitsuba/README.md`.
 
 **T1.10, two shapes with two materials.** This is the executable form of
 the project's top risk. A misclassified ɴsɪ connection does not error;
@@ -44,7 +54,10 @@ can catch it.
 
 **The build machine matters.** Mitsuba pulls Dr.Jit, Embree and LLVM.
 The machine this was developed on has 14 GiB and was driven into swap by
-an *egui* build; it OOM-killed twice. Confirm a capable host first.
+an *egui* build; it OOM-killed twice. A 4-core / 15 GiB host does manage
+it at `-j3` with the Python bindings off and the variants trimmed to
+two — that exact invocation, and why each part of it is deliberate, is
+in `crates/nsi-mitsuba/README.md`. Do not raise `-j` without headroom.
 
 ## Decisions You Should Not Silently Undo
 

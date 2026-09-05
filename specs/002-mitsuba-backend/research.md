@@ -104,6 +104,35 @@ closer target for dissolving ɴsɪ `attributes` nodes.
 MoonRay has no OSL either, so it carries the same requirement. This is
 why `001` is renderer-agnostic and a backend owns only the flush.
 
+### D6: The build's own flags are the shim's flags
+
+Established by T2.2 on 2026-09-05, against Mitsuba `609be13`. The header
+gate passed, so the shim is an ordinary `cc`-built crate rather than a
+CMake target inside Mitsuba's tree. It passed on three conditions, and
+each is a standing constraint on `mitsuba-sys`, not a one-off fix.
+
+**Compile as `gnu++17`.** Mitsuba builds itself at `-std=gnu++17`, not
+C++20. Compiling a consumer at a different language level against the
+same `.so` risks ODR and ABI mismatch, and `std::string_view` in the
+public signatures makes that concrete rather than theoretical.
+
+**Include `<cmath>` before any Mitsuba header.**
+`mitsuba/render/kdtree.h` calls `std::nextafter` without including
+`<cmath>`. Every Mitsuba translation unit reaches that header having
+already pulled it in, so the bug is invisible in Mitsuba's own build and
+fires immediately in a consumer's. Expect more of this shape: the public
+headers are only ever compiled by Mitsuba itself.
+
+**Derive the include set, do not maintain it.** The public headers reach
+into a dozen bundled third-party trees -- tinyformat, nanobind's
+intrusive refcounting (which is header-only and needed even at
+`MI_ENABLE_PYTHON=OFF`), drjit, drjit-core, robin_map, fastfloat and
+others -- for 25 include paths in total. That set is a property of the
+Mitsuba commit. `probe/run.sh` reads the compiler, the standard and the
+includes out of Mitsuba's `compile_commands.json`, and
+`mitsuba-sys/build.rs` should read the same file for `bindgen` at T1.2
+rather than carry a list that goes stale on the next bump.
+
 ## References
 
 - `include/mitsuba/core/plugin.h` -- `PluginManager::instance()`,

@@ -5,13 +5,19 @@ convenience.
 
 ## User Story 2: Build Without A GPU (P1)
 
-- [ ] T2.1 Build Mitsuba 3, `llvm_ad_rgb`, on a capable host. Record the
+- [x] T2.1 Build Mitsuba 3, `llvm_ad_rgb`, on a capable host. Record the
       CMake invocation in the crate README.
-- [ ] T2.2 **Compile a standalone probe including
+      Done 2026-09-05 against Mitsuba `609be13`; invocation and its three
+      deliberate choices are in `crates/nsi-mitsuba/README.md`.
+- [x] T2.2 **Compile a standalone probe including
       `<mitsuba/render/scene.h>` and link it.**
       Gate: `contracts/shim.md` headers row. Do this before writing any
       shim. A failure here means the shim moves inside Mitsuba's CMake
       tree, not that the project leaves C++; see `research.md` D3.
+      **PASS** 2026-09-05: `probe/run.sh`. The headers work outside the
+      build tree, so the shim stays a normal `cc`-built crate. Two
+      constraints fell out and bind T1.2 — `gnu++17`, and `<cmath>`
+      before any Mitsuba header. See `research.md` D6.
 
 ## User Story 1: Render A Recorded Scene (P1)
 

@@ -9,8 +9,8 @@ cover ɴsɪ mapping (`flush.md`).
 
 | Behavior | Status | Source Evidence | Test/QA Evidence | Required Next Evidence |
 | --- | --- | --- | --- | --- |
-| Mitsuba builds with the `llvm_ad_rgb` variant | Open | None | None | Build on a capable host; record the exact CMake invocation in the crate README. |
-| Mitsuba headers compile standalone | Open | None | None | Compile a file including `<mitsuba/render/scene.h>` that instantiates `Properties` and links. **This is the first gate; if it fails, move the shim inside Mitsuba's CMake tree per `research.md` D3 — the project does not leave C++.** |
+| Mitsuba builds with the `llvm_ad_rgb` variant | Covered | `crates/nsi-mitsuba/README.md`, "Building Mitsuba 3" | Manual QA 2026-09-05: Mitsuba `609be13`, 834/834 targets, 0 failures. `./build/mitsuba --help` reports `llvm` among enabled processor features and `llvm_ad_rgb` under `--mode`, so the variant loads and does not merely compile. |
+| Mitsuba headers compile standalone | Covered | `probe/header_probe.cpp`, `probe/run.sh` | `MITSUBA_DIR=… ./probe/run.sh` exits 0 against Mitsuba `609be13`: `Properties("perspective") constructed and read back`. Two constraints found and recorded in the crate README — build as `gnu++17`, and include `<cmath>` before any Mitsuba header. |
 | `Properties` round-trips every ɴsɪ type | Open | None | None | Rust test setting one value of each type, instantiating a trivial plugin, asserting `MI_OK`. |
 | No C++ exception crosses the boundary | Open | None | None | Test that a bad plugin name returns `MI_ERR_PLUGIN` with a non-empty `mi_last_error`, rather than aborting. |
 | A mesh is constructed from buffers | Open | None | None | Test building a triangle and asserting `face_count == 1`, `vertex_count == 3`. |
