@@ -114,6 +114,18 @@ even though the renderer cannot blur.
   image regardless, so the risk is a sharp render that reads as correct.
   Mitigated by reporting the limitation, not by refusing.
 
+- **No denoiser on the CPU path.** Mitsuba ships only an OptiX
+  denoiser (`include/mitsuba/render/optixdenoiser.h`); there is no OIDN
+  integration -- a search for `OpenImageDenoise` in the repository
+  returns nothing. OptiX is NVIDIA-only, and this backend commits to
+  CPU-first `llvm_ad_rgb`, so **as specced there is no denoiser at
+  all**. 3Delight uses OIDN, so this is a second regression against it.
+
+  The fix is external and cheap: OIDN wants beauty, albedo and normal,
+  and the `aov` integrator already emits `albedo` and `sh_normal` -- the
+  same mechanism as the motion vector pass. Denoising then happens
+  outside the renderer, which also keeps it swappable.
+
 - **Shim growth.** If the C surface passes roughly twenty entry points,
   the hand-written approach is losing. Fall back to `pyo3` over
   Mitsuba's nanobind API, which is the surface upstream supports.

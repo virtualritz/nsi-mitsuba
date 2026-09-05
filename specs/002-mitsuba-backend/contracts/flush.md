@@ -20,6 +20,23 @@ Covers turning a `nsi_record::Scene` into Mitsuba objects. Depends on
 | A motion vector pass is produced | Open | None | None | Render an `aov` pass emitting `position` and `shape_index`, then compute per-pixel screen-space displacement from the recorded t0/t1 transforms. See Motion Vectors below. |
 | The motion pass uses a box filter at 1 spp | Open | None | None | Mitsuba documents integer AOVs as **meaningless under partial pixel coverage or a wide reconstruction filter** -- they come back fractional. Assert the pass configures `box` width 1 and one sample per pixel, and test that a shape index round-trips exactly. |
 
+## Denoising
+
+Not part of this backend, but the AOVs it emits determine what is
+possible downstream, so the shape is recorded here.
+
+Mitsuba's only denoiser is OptiX, hence NVIDIA-only, hence unusable on
+the CPU path this backend targets. Denoising therefore happens outside
+the renderer, fed by the same `aov` mechanism as motion vectors:
+
+| Consumer | Wants | Mitsuba AOV | Fit |
+| --- | --- | --- | --- |
+| OIDN | beauty, albedo, normal | `albedo`, `sh_normal` | Final frames. What 3Delight uses. |
+| A temporal reconstructor (e.g. `kvark/ommatidia`) | sparse beauty, depth, normal, albedo, motion | `depth`, `sh_normal`, `albedo`, plus the motion pass below | Interactive preview at ~1 spp only. Trained on sparse input; a converged frame is out of distribution. |
+
+Emitting these costs nothing extra: they are AOV names on an integrator
+already being configured.
+
 ## Motion Vectors
 
 Mitsuba cannot blur, but it can report enough to compute motion vectors
