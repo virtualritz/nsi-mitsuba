@@ -16,7 +16,40 @@ Covers turning a `nsi_record::Scene` into Mitsuba objects. Depends on
 | `dlPrincipled` maps to `principled` | Open | None | None | Flush a `shader` node naming it; assert a `principled` BSDF results. |
 | An unmapped shader fails loudly | Open | None | None | Assert that an unknown `shaderfilename` errors rather than silently rendering untextured. |
 | The `stream_roundtrip` fixture renders | Open | None | None | Reuse `001`'s fixture scene end to end. |
-| A motion-sampled scene is refused, not silently flattened | Open | None | None | **Mitsuba 3 cannot do motion blur** -- `AnimatedTransform` was dropped after Mitsuba 2; see `spec.md`. So this row is not "implement motion", it is "fail honestly". Test that a scene with `set_attribute_at_time` on a transform either errors or renders with a recorded warning, and never returns a sharp image as an unqualified success. |
+| A motion-sampled scene renders sharp, and says so | Open | None | None | **Mitsuba 3 cannot do motion blur** -- `AnimatedTransform` was dropped after Mitsuba 2; see `spec.md`. ɴsɪ always returns an image, so the backend renders at shutter-open and reports the limitation. Test that motion samples are detected and surfaced, and that the render still succeeds. |
+| A motion vector pass is produced | Open | None | None | Render an `aov` pass emitting `position` and `shape_index`, then compute per-pixel screen-space displacement from the recorded t0/t1 transforms. See Motion Vectors below. |
+| The motion pass uses a box filter at 1 spp | Open | None | None | Mitsuba documents integer AOVs as **meaningless under partial pixel coverage or a wide reconstruction filter** -- they come back fractional. Assert the pass configures `box` width 1 and one sample per pixel, and test that a shape index round-trips exactly. |
+
+## Motion Vectors
+
+Mitsuba cannot blur, but it can report enough to compute motion vectors
+downstream, and this needs **no Mitsuba changes**.
+
+The `aov` integrator already emits `position` (world space) and
+`shape_index`. Given those, and the transforms `nsi-record` holds in
+`Node::time_attrs`:
+
+```text
+for each covered pixel:
+    P     = position AOV            # world space, at shutter open
+    s     = shape_index AOV         # which shape
+    M0,M1 = that shape's transforms at t0 and t1
+    p_obj = inverse(M0) * P         # back to object space
+    mv    = project(camera1, M1 * p_obj) - project(camera0, P)
+```
+
+Camera motion falls out of the same formula: an animated camera makes
+`camera0` and `camera1` differ.
+
+**Limits, stated rather than discovered:**
+
+- **Rigid transform motion only.** This covers animated `transform`
+  nodes. It does *not* cover deforming geometry -- ɴsɪ can send `P`
+  itself at several times, and no per-object matrix describes that.
+- **Requires `box` width 1 at 1 spp**, per the integer-AOV caveat above.
+  A filtered shape index is a fractional index, which is not an index.
+- **Needs a shape-index-to-handle map.** We control the flush, so the
+  map is ours to keep; it is not recoverable from Mitsuba afterwards.
 
 ## Invariants
 

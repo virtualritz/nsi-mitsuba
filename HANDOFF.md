@@ -43,13 +43,18 @@ binding is commented out -- it was dropped after Mitsuba 2. Sensors do
 have `shutter_open`/`shutter_close` and rays carry a `time`, so the
 plumbing exists, but nothing in the scene varies with it.
 
-That makes this a regression against 3Delight, which does motion blur.
-Two separate consequences: `nsi-record`'s `world_transform` still reads
-static attributes only (`001` T3.5, worth doing for a backend that can
-use it, such as MoonRay), and the Mitsuba backend must **refuse a
-motion-sampled scene rather than return a sharp image** (`002` TB.1).
-A sharp render offered without comment is indistinguishable from a
-correct one.
+That makes it a regression against 3Delight. But **ɴsɪ always returns an
+image** -- refusing is not something a farm can use -- so the backend
+renders sharp and reports the limitation rather than erroring
+(`002` TB.1).
+
+What is offered instead is a **motion vector pass**, which needs no
+Mitsuba changes: the `aov` integrator already emits `position` and
+`shape_index`, and the recorded t0/t1 transforms supply the rest
+(`002` User Story 4). That pass is what makes `001` T3.5 worth doing for
+this backend after all. Note the caveat: integer AOVs are fractional
+under a wide reconstruction filter, so the pass needs `box` width 1 at
+1 spp.
 
 **`nsi-record` depends on `nsi` as a git dependency**, pinned by
 `Cargo.lock`. Under the `[patch]` override in `README.md` it instead

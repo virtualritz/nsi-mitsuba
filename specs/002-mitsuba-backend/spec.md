@@ -38,6 +38,20 @@ OSL exists.
   a Mitsuba `principled` BSDF is instantiated with equivalent
   parameters.
 
+### User Story 4: A Motion Vector Pass Instead Of Blur (P2)
+
+As a compositor, I want per-pixel screen-space motion vectors, so that
+blur, denoising and temporal reprojection remain possible downstream
+even though the renderer cannot blur.
+
+**Acceptance Criteria**
+
+- Given a scene whose transforms carry two time samples, when a motion
+  vector pass is requested, then each covered pixel holds the
+  screen-space displacement of its surface point between the two times.
+- Given a pixel covering a static surface, when the pass renders, then
+  its motion vector is zero.
+
 ## Non-Goals
 
 - **Generic OSL.** Deferred; see `003` when it exists. `dlToon` is
@@ -62,6 +76,11 @@ OSL exists.
 
   This is a **capability regression against 3Delight**, which does
   motion blur. It is a property of the renderer, not of this backend.
+
+  **ɴsɪ always returns an image.** The interface's philosophy is that a
+  render produces pixels; refusing a scene is not an option a farm can
+  use. So a motion-sampled scene renders sharp, with the limitation
+  reported -- see User Story 4 for what is offered instead.
 
 ## Requirements
 
@@ -91,9 +110,9 @@ OSL exists.
 - **Silent material misbinding.** Inherited from `001`'s top risk.
   Mitigated by an explicit two-shape, two-material test.
 - **Silently sharp motion.** An ɴsɪ consumer may legitimately send
-  `set_attribute_at_time`. Since Mitsuba cannot honour it, the backend
-  must say so rather than render a sharp image that looks like a
-  successful render. See `contracts/flush.md`.
+  `set_attribute_at_time`. Mitsuba cannot honour it, and ɴsɪ requires an
+  image regardless, so the risk is a sharp render that reads as correct.
+  Mitigated by reporting the limitation, not by refusing.
 
 - **Shim growth.** If the C surface passes roughly twenty entry points,
   the hand-written approach is losing. Fall back to `pyo3` over

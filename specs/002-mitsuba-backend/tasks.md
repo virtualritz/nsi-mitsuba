@@ -30,6 +30,22 @@ convenience.
 - [ ] T1.11 Test: an unmapped shader or node type errors rather than
       rendering something plausible.
 
+## User Story 4: Motion Vector Pass (P2)
+
+Needs no Mitsuba changes; the `aov` integrator already emits what is
+required.
+
+- [ ] T4.1 Keep a shape-index-to-ɴsɪ-handle map during flush. Not
+      recoverable from Mitsuba afterwards.
+- [ ] T4.2 Configure an `aov` pass emitting `position` and
+      `shape_index`, with `box` width 1 at 1 spp.
+      Gate: the integer-AOV caveat in `contracts/flush.md`.
+- [ ] T4.3 Compute per-pixel screen-space displacement from the recorded
+      t0/t1 transforms. Test that a static surface yields zero and a
+      translated one yields the expected direction.
+- [ ] T4.4 Depends on `001` T3.5 -- this is the consumer that makes
+      resolving motion samples worth doing for *this* backend after all.
+
 ## User Story 3: Native Materials (P2)
 
 - [ ] T3.1 `dlPrincipled` to `principled`, with parameter mapping.
@@ -38,11 +54,9 @@ convenience.
 
 ## Blocked
 
-- [ ] TB.1 **Refuse motion, do not implement it.** Mitsuba 3 has no
+- [ ] TB.1 **Report motion, do not refuse it.** Mitsuba 3 has no
       `AnimatedTransform`; the capability was dropped after Mitsuba 2.
-      Not blocked on `001` T3.5 -- resolving motion samples would not
-      help, because there is nothing to hand them to. The task is to
-      detect `set_attribute_at_time` on a transform and fail or warn,
-      never to return a sharp image as an unqualified success.
+      ɴsɪ always returns an image, so render at shutter-open and surface
+      the limitation. Not blocked on `001` T3.5.
 - [ ] TB.2 Verify `m_accel.rebuild()` refreshes `m_shapes_dr` when
       shapes are added or removed. Could reshape the flush strategy.
