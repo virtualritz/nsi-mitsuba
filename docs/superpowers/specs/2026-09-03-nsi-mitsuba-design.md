@@ -80,8 +80,8 @@ nsi-mitsuba/
 │   ├── nsi-record/     pure Rust, renderer-agnostic: recorder,
 │   │                   connection classifier, .nsi stream
 │   ├── nsi-mitsuba/    the flush into Mitsuba, and nothing else
-│   ├── mitsuba-sys/    bbl-build generated bindings
-│   └── bbl-mitsuba/    C++ babble binding definitions
+│   ├── mitsuba-sys/    bindgen over the shim's C header
+│   └── mitsuba-shim/   hand-written extern "C" shim
 └── docs/
 ```
 
@@ -105,15 +105,60 @@ of the graph rewrites.
 `evaluate`, `render_control`. All take `&self`, so the recorder uses
 interior mutability.
 
-### `bbl-mitsuba` (C++ binding definitions)
+### `mitsuba-shim` (C++)
 
-`babble` bindings over `Properties`, `PluginManager`, `Scene`, `Mesh`,
-`Bitmap`, and the render entry point. This mirrors the existing
-`bbl-usd` setup and builds through `bbl-build-rs`.
+A hand-written `extern "C"` shim over `Properties`, `PluginManager`,
+`Scene`, `Mesh`, `Bitmap`, and the render entry point. It instantiates
+one Mitsuba variant and exposes a flat C API against it.
 
 ### `mitsuba-sys` (Rust)
 
-Generated bindings, built by `bbl-build` from `bbl-mitsuba`.
+`bindgen` over the shim's C header. Nothing more.
+
+### Why a shim rather than a binding generator
+
+Every Mitsuba render class is a two-parameter template with CRTP on top:
+
+```cpp
+template <typename Float, typename Spectrum>
+class MI_EXPORT_LIB Scene final : public JitObject<Scene<Float, Spectrum>>
+```
+
+So a variant has to be chosen and instantiated explicitly -- no tool
+avoids that. `babble` supports it ("template methods must be bound
+separately for each type you wish to instantiate them with"), and so
+would the alternatives, but all of them require naming the
+instantiation by hand.
+
+Once instantiation is manual, a generator's automation value largely
+evaporates: writing `bbl::Class<Scene<Float, Spectrum>>(...)` in a bind
+file and writing `extern "C" mi_scene_create(...)` in a shim are
+comparable effort. And our surface is small -- on the order of a dozen
+entry points, not a library-wide binding.
+
+That tips the decision onto maintenance risk, where the numbers are
+one-sided. As of 2026-09: `babble` last pushed 2025-01-19 (~20 months,
+9 stars, 12 open issues) and `bbl-build-rs` the same day (1 star);
+`bindgen` pushed within two days, 5274 stars. Adopting `babble` would
+mean becoming its de facto maintainer, and the failure mode is finding
+a libclang gap in Mitsuba's `MI_EXPORT_LIB` / CRTP headers mid-
+integration -- the worst moment to be debugging a binding generator.
+
+Keeping `babble` alive is a reasonable goal on its own terms, since
+`bbl-usd` depends on it. It is just not a prerequisite for this work.
+
+`cxx` is the near alternative and would give a safer Rust side, but its
+bridge does not do templates either, so the shim gets written either
+way; `bindgen` over a plain C header is the smaller dependency.
+
+### The other option, if the shim proves painful
+
+Mitsuba's *supported* public API is Python, via nanobind; the C++ API is
+effectively internal. Driving it through `pyo3` skips C++ binding
+altogether. The GIL matters less than it sounds -- scene construction is
+the only chatty part, and rendering happens below in the JIT. Uglier,
+but it is the surface upstream commits to, and it is the fastest route
+to a working backend if the C++ side fights back.
 
 ### `nsi-osl` (deferred, renderer-agnostic)
 
