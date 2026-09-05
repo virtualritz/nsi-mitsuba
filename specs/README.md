@@ -12,7 +12,7 @@ first.
 | # | Surface | Status |
 | --- | --- | --- |
 | [001](001-nsi-scene-recording/) | ɴsɪ scene recording and resolution | Implemented; `Partial` and `Open` rows remain |
-| [002](002-mitsuba-backend/) | Mitsuba 3 backend | Not started; blocked on a build host |
+| [002](002-mitsuba-backend/) | Mitsuba 3 backend | Build and header gates `Covered` (T2.1, T2.2); the shim itself is unstarted |
 
 ## Coverage Order
 
