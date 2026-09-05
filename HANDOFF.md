@@ -22,6 +22,38 @@ calls, one generic function driving both sides.
 builds here and its headers are proven usable from outside its build
 tree (T2.1, T2.2). See `crates/nsi-mitsuba/README.md`.
 
+## Picking This Up On A Fresh Checkout
+
+Three things live outside the repository and do not travel with a clone.
+
+**The `.blueprints` submodule is private.** A plain clone leaves it
+empty and every `.blueprints/...` reference in `AGENTS.md` dangles:
+
+```bash
+git submodule update --init .blueprints
+```
+
+That needs credentials for `virtualritz/blueprints`. The per-repo setup
+is already committed, so nothing needs re-running — but if you ever do,
+`.blueprints/setup.sh` skips files that exist and will not clobber
+`specs/README.md` or `AGENTS.md`. `setup-user.sh` is separate and runs
+once per machine, not per checkout.
+
+**Mitsuba is not vendored.** `MITSUBA_DIR` points at a build tree that
+lives wherever you put it; `crates/nsi-mitsuba/README.md` has the
+invocation. Budget for it — 834 targets, and the `-j3` ceiling there is
+load-bearing on a 16 GiB box.
+
+**`just` may not be installed.** `.blueprints/setup.sh` installs it via
+cargo if missing; `cargo install just` is the same thing.
+
+Then confirm the baseline before changing anything:
+
+```bash
+cargo test --all-features                                  # 43 pass with 3Delight
+MITSUBA_DIR=/path/to/mitsuba3/build ./probe/run.sh          # T2.2, exits 0
+```
+
 ## What To Do Next
 
 `specs/002-mitsuba-backend/tasks.md`, in order. The task that matters
