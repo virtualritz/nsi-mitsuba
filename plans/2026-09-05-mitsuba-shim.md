@@ -14,7 +14,7 @@ header. `nsi-mitsuba` walks a `nsi_record::Scene` and calls it.
 
 **Tech Stack:** Mitsuba 3 (BSD-3), C++17, `bindgen`, `cc` or `cmake`.
 
-**Spec:** `docs/superpowers/specs/2026-09-03-nsi-mitsuba-design.md`
+**Spec:** `specs/002-mitsuba-backend/`
 
 ## Prerequisite: a machine that can build Mitsuba
 
