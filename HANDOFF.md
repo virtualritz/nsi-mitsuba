@@ -50,9 +50,15 @@ cargo if missing; `cargo install just` is the same thing.
 Then confirm the baseline before changing anything:
 
 ```bash
-cargo test --all-features                                  # 43 pass with 3Delight
-MITSUBA_DIR=/path/to/mitsuba3/build ./probe/run.sh          # T2.2, exits 0
+cargo check --all-targets                           # pulls nsi-intermediate
+MITSUBA_DIR=/path/to/mitsuba3/build ./probe/run.sh  # T2.2, exits 0
 ```
+
+`cargo test` here runs **zero tests**, and that is correct rather than
+broken: everything testable moved to `nsi-intermediate`, the 3Delight
+stream-fidelity gate included. Test this repository against 3Delight and
+you are testing the wrong repository — that gate lives in the `nsi`
+workspace now. The first test to land here will be T1.3's.
 
 ## What To Do Next
 

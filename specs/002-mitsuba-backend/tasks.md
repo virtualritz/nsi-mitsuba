@@ -29,7 +29,7 @@ convenience.
 - [ ] T1.5 `mi_mesh_new`, `mi_render`, `mi_bitmap_data`.
 - [ ] T1.6 **Test: a triangle renders.** Milestone -- C++ risk retired.
 - [ ] T1.7 Test: the transform transpose places a shape correctly.
-- [ ] T1.8 `flush.rs` walking a `nsi_record::Scene`.
+- [ ] T1.8 `flush.rs` walking a `nsi_intermediate::Scene`.
 - [ ] T1.9 Map `render_outputs()` onto sensor and film.
 - [ ] T1.10 **Test: two shapes, two materials, each correct.**
       Gate: `contracts/flush.md`. This is `001`'s top risk made

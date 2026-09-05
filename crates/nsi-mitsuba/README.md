@@ -1,7 +1,7 @@
 # nsi-mitsuba
 
 The Mitsuba 3 backend for ɴsɪ. Holds the flush; everything upstream of
-it is renderer-agnostic and lives in `nsi-record`.
+it is renderer-agnostic and lives in `nsi-intermediate`.
 
 ## Building Mitsuba 3
 

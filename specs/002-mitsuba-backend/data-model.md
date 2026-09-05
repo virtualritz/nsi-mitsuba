@@ -42,9 +42,9 @@ C++ never retains one past a call except through the object graph a
 
 ### Transform handedness
 
-`nsi_record::Scene::world_transform` returns row-major, row-vector.
+`nsi_intermediate::Scene::world_transform` returns row-major, row-vector.
 Mitsuba is column-vector. **The transpose happens once, inside
-`mi_props_set_transform`.** Neither `nsi-record` nor `nsi-mitsuba`
+`mi_props_set_transform`.** Neither `nsi-intermediate` nor `nsi-mitsuba`
 carries a convention flag, and there is exactly one place to get it
 wrong.
 

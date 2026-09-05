@@ -12,7 +12,7 @@ this work lands, moving anything durable here first.
 
 `mitsuba-shim` (C++) instantiates one Mitsuba variant and exposes a flat
 C API. `mitsuba-sys` is `bindgen` over its header. `nsi-mitsuba` walks a
-`nsi_record::Scene` and calls it.
+`nsi_intermediate::Scene` and calls it.
 
 ## Gates
 

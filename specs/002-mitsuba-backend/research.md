@@ -55,8 +55,8 @@ The original argument was that the GIL matters less than it sounds,
 because scene construction is the only chatty part and rendering happens
 below in the JIT. The first half is what fails in practice: scene
 construction is exactly what this backend does. A flush walks a
-`nsi_record::Scene` and makes one call per node, per attribute, and per
-connection, and every one of those crosses the interpreter — GIL
+`nsi_intermediate::Scene` and makes one call per node, per attribute,
+and per connection, and every one of those crosses the interpreter — GIL
 acquisition, argument boxing, and a nanobind dispatch each way. The
 render is one call at the end. Paying interpreter overhead on the whole
 scene to save binding work on a handful of entry points is the wrong

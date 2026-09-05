@@ -2,7 +2,7 @@
 
 ## Scope
 
-Covers turning a `nsi_record::Scene` into Mitsuba objects. Depends on
+Covers turning a `nsi_intermediate::Scene` into Mitsuba objects. Depends on
 `001` having resolved graph semantics already.
 
 ## Matrix
@@ -43,7 +43,7 @@ Mitsuba cannot blur, but it can report enough to compute motion vectors
 downstream, and this needs **no Mitsuba changes**.
 
 The `aov` integrator already emits `position` (world space) and
-`shape_index`. Given those, and the transforms `nsi-record` holds in
+`shape_index`. Given those, and the transforms `nsi-intermediate` holds in
 `Node::time_attrs`:
 
 ```text
@@ -72,7 +72,7 @@ Camera motion falls out of the same formula: an animated camera makes
 
 - This crate contains no ɴsɪ graph semantics. Transform composition,
   `attributes` dissolution, output-chain and instance resolution all
-  happen in `nsi-record`.
+  happen in `nsi-intermediate`.
 - `Type::Reference` never reaches Mitsuba.
 
 ## Failure Modes

@@ -10,9 +10,9 @@ that I have an open-source renderer behind the same interface as
 
 **Acceptance Criteria**
 
-- Given a recorded `nsi_record::Scene` containing geometry, a camera and
-  a screen, when it is flushed and rendered, then a bitmap with non-zero
-  pixels is produced.
+- Given a recorded `nsi_intermediate::Scene` containing geometry, a
+  camera and a screen, when it is flushed and rendered, then a bitmap
+  with non-zero pixels is produced.
 - Given a scene with two shapes and two distinct materials, when it is
   rendered, then each material is applied to the correct shape.
 

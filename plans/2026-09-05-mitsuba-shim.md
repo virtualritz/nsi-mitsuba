@@ -10,7 +10,7 @@ through a hand-written `extern "C"` shim and `bindgen`.
 **Architecture:** `mitsuba-shim` is C++ that instantiates one Mitsuba
 variant and exposes a flat C API over `Properties`, `PluginManager`,
 `Scene`, `Mesh` and `Bitmap`. `mitsuba-sys` is `bindgen` over its
-header. `nsi-mitsuba` walks a `nsi_record::Scene` and calls it.
+header. `nsi-mitsuba` walks a `nsi_intermediate::Scene` and calls it.
 
 **Tech Stack:** Mitsuba 3 (BSD-3), C++17, `bindgen`, `cc` or `cmake`.
 
@@ -36,7 +36,7 @@ inferred.
   vectorised, no NVIDIA requirement.
 - The shim owns no ɴsɪ semantics. Transform composition, `attributes`
   dissolution, output-chain and instance resolution all happened in
-  `nsi-record`; the shim receives resolved facts.
+  `nsi-intermediate`; the shim receives resolved facts.
 - C API only across the boundary: no C++ types, no exceptions escaping.
   Every entry point returns a status code or an opaque handle.
 - ɴsɪ `Type::Reference` never crosses into Mitsuba.
@@ -92,7 +92,7 @@ void     mi_props_set_float (MiProps *, const char *name, double value);
 void     mi_props_set_string(MiProps *, const char *name, const char *value);
 void     mi_props_set_vector(MiProps *, const char *name, const double v[3]);
 void     mi_props_set_color (MiProps *, const char *name, const double v[3]);
-// Row-major, as nsi_record::Scene::world_transform returns it. The shim
+// Row-major, as nsi_intermediate::Scene::world_transform returns it. The shim
 // transposes: ɴsɪ is row-vector, Mitsuba column-vector.
 void     mi_props_set_transform(MiProps *, const char *name, const double m[16]);
 void     mi_props_set_object(MiProps *, const char *name, MiObject *child);
@@ -130,7 +130,7 @@ returns a status. `mi_last_error` retrieves it.
 
 **Handedness is converted at the boundary, once.** ɴsɪ is row-vector
 row-major; Mitsuba is column-vector. Doing the transpose inside
-`mi_props_set_transform` means neither `nsi-record` nor `nsi-mitsuba`
+`mi_props_set_transform` means neither `nsi-intermediate` nor `nsi-mitsuba`
 carries a convention flag, and there is exactly one place to get it
 wrong.
 
@@ -180,9 +180,9 @@ wrong.
 
 **Files:** `crates/nsi-mitsuba/src/flush.rs`
 
-- [ ] **Step 1:** Walk `nsi_record::Scene`; for each geometry node call
-      `world_transform` for `to_world` and `geometry_binding` for the
-      material, and build `Properties`.
+- [ ] **Step 1:** Walk `nsi_intermediate::Scene`; for each geometry node
+      call `world_transform` for `to_world` and `geometry_binding` for
+      the material, and build `Properties`.
 - [ ] **Step 2:** Map `render_outputs` onto sensor + film.
 - [ ] **Step 3:** Test: the `stream_roundtrip` fixture scene renders
       without error.
