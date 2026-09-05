@@ -36,8 +36,12 @@ CPP
 # compile and link against the Mitsuba build
 ```
 
-If this does not link, stop and read `research.md` D3. The C++ path is
-not viable and `pyo3` over nanobind is the alternative.
+If this does not link, stop and read `research.md` D3. It does not mean
+leaving C++ — it means the shim gets built inside Mitsuba's own CMake
+tree, where the include paths and flags are guaranteed to match.
+
+The probe lives at `probe/`; run it with
+`MITSUBA_DIR=/path/to/mitsuba3/build ./probe/run.sh`.
 
 ## Manual QA Path
 

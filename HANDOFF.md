@@ -22,9 +22,14 @@ than the rest:
 **T2.2, the standalone header probe.** Compile a file that includes
 `<mitsuba/render/scene.h>`, instantiates `Properties`, and links. Do
 this *before* writing any shim. Every Mitsuba render class is a
-two-parameter template with CRTP, and if the headers do not work outside
-Mitsuba's own build tree, the answer is `pyo3` over its nanobind API —
-not more C++. That decision is recorded in `002/research.md` D3.
+two-parameter template with CRTP, so this is genuinely uncertain. The
+probe lives at `probe/`; run it with
+`MITSUBA_DIR=/path/to/mitsuba3/build ./probe/run.sh`.
+
+If it fails, the answer is to build the shim inside Mitsuba's own CMake
+tree, where the flags match by construction. It is *not* `pyo3`, which
+was the recorded fallback until 2026-09-05 and is now rejected —
+`002/research.md` D3.
 
 **T1.10, two shapes with two materials.** This is the executable form of
 the project's top risk. A misclassified ɴsɪ connection does not error;
@@ -56,6 +61,11 @@ an *egui* build; it OOM-killed twice. Confirm a capable host first.
 Each has a reason recorded; changing one without reading it will look
 like a simplification and be a regression.
 
+- **The backend is C++, not `pyo3`.** A flush is one interpreter
+  crossing per node, per attribute and per connection; the render is a
+  single call at the end. Going through Python pays interpreter overhead
+  on the whole scene to save binding work on a handful of entry points.
+  `002` research D3.
 - **`nsi-trait`'s `Arg` GAT has no `where Self: 'call`.** Re-adding it
   makes `impl<'a> Nsi for Context<'a>` unprovable (E0477). `001`
   research D2, and a doc comment on the trait itself.

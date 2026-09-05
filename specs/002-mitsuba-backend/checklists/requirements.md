@@ -27,7 +27,9 @@
       claims otherwise.
 - [x] The blocking prerequisite is stated in `spec.md`, `plan.md`,
       `quickstart.md` and above, rather than discovered at build time.
-- [x] The fallback (`pyo3` over nanobind) is recorded with the condition
-      that triggers it, not left as folklore.
+- [x] The response to a failed header gate is recorded with the
+      condition that triggers it, not left as folklore. `pyo3` over
+      nanobind was that response until 2026-09-05 and is now rejected;
+      `research.md` D3 carries the reasoning and the C++ recovery path.
 - [x] Inherited risk from `001` is named, not assumed handled: motion
       blur is blocked, and material misbinding gets its own test.

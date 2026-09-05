@@ -45,13 +45,41 @@ production-ready by its own account.
 Keeping `babble` alive is reasonable on its own terms, since `bbl-usd`
 depends on it. It is not a prerequisite here.
 
-### D3: `pyo3` over nanobind is the fallback
+### D3: `pyo3` over nanobind is rejected; C++ is the only path
 
-Mitsuba's *supported* public API is Python; the C++ API is effectively
-internal. If the headers fight back at the first gate, driving Mitsuba
-through `pyo3` skips C++ binding entirely. The GIL matters less than it
-sounds: scene construction is the only chatty part, and rendering
-happens below in the JIT.
+Superseded 2026-09-05. This entry previously named `pyo3` over Mitsuba's
+nanobind API as the fallback if the headers proved unusable. That
+fallback is withdrawn on performance grounds, by project decision.
+
+The original argument was that the GIL matters less than it sounds,
+because scene construction is the only chatty part and rendering happens
+below in the JIT. The first half is what fails in practice: scene
+construction is exactly what this backend does. A flush walks a
+`nsi_record::Scene` and makes one call per node, per attribute, and per
+connection, and every one of those crosses the interpreter — GIL
+acquisition, argument boxing, and a nanobind dispatch each way. The
+render is one call at the end. Paying interpreter overhead on the whole
+scene to save binding work on a handful of entry points is the wrong
+trade for a renderer backend.
+
+So the C++ path is not merely preferred, it is the path. **A failure at
+the T2.2 gate is not a licence to reach for Python.** If the headers do
+not work outside Mitsuba's own build tree, the answer stays in C++, in
+this order:
+
+1. Build the shim *inside* Mitsuba's build tree as a CMake target that
+   emits a C-ABI shared library. It then compiles under exactly the
+   include paths, definitions and flags Mitsuba compiles itself with,
+   which is what "outside the build tree" was risking. Rust links the
+   result and never sees a C++ type — the `shim.md` invariants are
+   unchanged.
+2. Vendor the specific headers or flags that fight back, and record each
+   one here.
+
+Mitsuba's *supported* public API being Python remains true, and remains
+the standing risk of this approach: the C++ API can change without
+notice between releases. That is accepted, and the mitigation is the
+pinned Mitsuba commit in the crate README plus the shim's own tests.
 
 ### D4: Incremental edits are viable, if blunt
 
