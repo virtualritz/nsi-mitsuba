@@ -10,7 +10,8 @@ convenience.
 - [ ] T2.2 **Compile a standalone probe including
       `<mitsuba/render/scene.h>` and link it.**
       Gate: `contracts/shim.md` headers row. Do this before writing any
-      shim; a failure here means `pyo3`, not more C++.
+      shim. A failure here means the shim moves inside Mitsuba's CMake
+      tree, not that the project leaves C++; see `research.md` D3.
 
 ## User Story 1: Render A Recorded Scene (P1)
 

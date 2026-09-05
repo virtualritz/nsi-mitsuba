@@ -27,7 +27,9 @@ C API. `mitsuba-sys` is `bindgen` over its header. `nsi-mitsuba` walks a
 
 Gate 2 is first for a reason: if Mitsuba's headers do not compile
 outside its own build tree, that is discovered before any shim exists,
-and `pyo3` becomes the path.
+while the shim's build strategy is still free to change. It does not
+change the language — `pyo3` is rejected per `research.md` D3, and the
+recovery is to build the shim inside Mitsuba's own CMake tree.
 
 Gate 5 is the milestone. Gate 6 is the one that proves correctness
 rather than mere function.

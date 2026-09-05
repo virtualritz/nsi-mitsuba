@@ -127,5 +127,11 @@ even though the renderer cannot blur.
   outside the renderer, which also keeps it swappable.
 
 - **Shim growth.** If the C surface passes roughly twenty entry points,
-  the hand-written approach is losing. Fall back to `pyo3` over
-  Mitsuba's nanobind API, which is the surface upstream supports.
+  the hand-written approach is losing its argument. The response is to
+  generate more of the shim, not to leave C++: `pyo3` over nanobind is
+  rejected on performance grounds per `research.md` D3, because a flush
+  is one interpreter crossing per node, attribute and connection.
+- **Unsupported API.** Mitsuba supports its Python API, not its C++ one,
+  so the C++ surface can shift between releases. Accepted as the cost of
+  D3. Mitigated by pinning the Mitsuba commit in the crate README and by
+  the shim's own tests failing loudly when it shifts.
