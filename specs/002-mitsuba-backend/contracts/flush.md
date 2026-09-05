@@ -16,7 +16,7 @@ Covers turning a `nsi_record::Scene` into Mitsuba objects. Depends on
 | `dlPrincipled` maps to `principled` | Open | None | None | Flush a `shader` node naming it; assert a `principled` BSDF results. |
 | An unmapped shader fails loudly | Open | None | None | Assert that an unknown `shaderfilename` errors rather than silently rendering untextured. |
 | The `stream_roundtrip` fixture renders | Open | None | None | Reuse `001`'s fixture scene end to end. |
-| Motion blur | Open | `001` `contracts/resolution.md` records that `world_transform` reads static attributes only | None | Blocked on `001` T3.5. **A motion-blurred scene would currently render with its static transform, silently.** |
+| A motion-sampled scene is refused, not silently flattened | Open | None | None | **Mitsuba 3 cannot do motion blur** -- `AnimatedTransform` was dropped after Mitsuba 2; see `spec.md`. So this row is not "implement motion", it is "fail honestly". Test that a scene with `set_attribute_at_time` on a transform either errors or renders with a recorded warning, and never returns a sharp image as an unqualified success. |
 
 ## Invariants
 
@@ -30,6 +30,9 @@ Covers turning a `nsi_record::Scene` into Mitsuba objects. Depends on
 - **Unmapped shader name:** must error. Rendering an untextured surface
   instead would be a silent wrong result.
 - **Unmapped node type:** must error, for the same reason.
+- **Motion samples present:** must not be silently discarded. A sharp
+  image returned without comment is indistinguishable from a correct
+  one, which is the failure mode this project exists to avoid.
 
 ## Required Evidence Before Marking Complete
 

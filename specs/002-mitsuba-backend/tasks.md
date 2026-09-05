@@ -38,8 +38,11 @@ convenience.
 
 ## Blocked
 
-- [ ] TB.1 Motion blur. Blocked on `001` T3.5: `world_transform` reads
-      static attributes only, so a motion-blurred scene would render
-      with its static transform, silently.
+- [ ] TB.1 **Refuse motion, do not implement it.** Mitsuba 3 has no
+      `AnimatedTransform`; the capability was dropped after Mitsuba 2.
+      Not blocked on `001` T3.5 -- resolving motion samples would not
+      help, because there is nothing to hand them to. The task is to
+      detect `set_attribute_at_time` on a transform and fail or warn,
+      never to return a sharp image as an unqualified success.
 - [ ] TB.2 Verify `m_accel.rebuild()` refreshes `m_shapes_dr` when
       shapes are added or removed. Could reshape the flush strategy.

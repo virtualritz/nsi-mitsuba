@@ -50,6 +50,19 @@ OSL exists.
 - **Matching 3Delight's interactive latency.** `parameters_changed()`
   rebuilds the whole acceleration structure.
 
+- **Motion blur. Mitsuba 3 cannot do it.** `AnimatedTransform` does not
+  exist in `core/transform.h` and its Python binding is commented out;
+  it was present in Mitsuba 2 and dropped. Sensors do carry
+  `shutter_open`/`shutter_close` and rays carry a `time`, so the time
+  dimension is plumbed through sampling -- but no scene quantity varies
+  with it, so every sample sees an identical scene and the result is
+  sharp. (`Shape::differential_motion` is automatic-differentiation
+  machinery, not motion: its result is "attached (AD) to the shape's
+  parameters".)
+
+  This is a **capability regression against 3Delight**, which does
+  motion blur. It is a property of the renderer, not of this backend.
+
 ## Requirements
 
 - R1: A hand-written `extern "C"` shim exposes Mitsuba to Rust.
@@ -77,6 +90,11 @@ OSL exists.
   removed. Could reshape the flush strategy.
 - **Silent material misbinding.** Inherited from `001`'s top risk.
   Mitigated by an explicit two-shape, two-material test.
+- **Silently sharp motion.** An ɴsɪ consumer may legitimately send
+  `set_attribute_at_time`. Since Mitsuba cannot honour it, the backend
+  must say so rather than render a sharp image that looks like a
+  successful render. See `contracts/flush.md`.
+
 - **Shim growth.** If the C surface passes roughly twenty entry points,
   the hand-written approach is losing. Fall back to `pyo3` over
   Mitsuba's nanobind API, which is the surface upstream supports.

@@ -37,10 +37,19 @@ can catch it.
 its absence as permission to mark contract rows `Covered`.
 `001/quickstart.md` shows how to confirm the reference side really ran.
 
-**Motion blur silently resolves to the static transform.**
-`world_transform` reads static attributes only. `Scene` stores
-`time_attrs` separately precisely so this can be fixed, but the API
-decision has not been made. Tracked as `001` T3.5 and `002` TB.1.
+**Motion blur is a capability gap, not a bug to fix.** Mitsuba 3 cannot
+do it: `AnimatedTransform` does not exist in `core/transform.h` and its
+binding is commented out -- it was dropped after Mitsuba 2. Sensors do
+have `shutter_open`/`shutter_close` and rays carry a `time`, so the
+plumbing exists, but nothing in the scene varies with it.
+
+That makes this a regression against 3Delight, which does motion blur.
+Two separate consequences: `nsi-record`'s `world_transform` still reads
+static attributes only (`001` T3.5, worth doing for a backend that can
+use it, such as MoonRay), and the Mitsuba backend must **refuse a
+motion-sampled scene rather than return a sharp image** (`002` TB.1).
+A sharp render offered without comment is indistinguishable from a
+correct one.
 
 **`nsi-record` depends on `nsi` as a git dependency**, pinned by
 `Cargo.lock`. Under the `[patch]` override in `README.md` it instead
