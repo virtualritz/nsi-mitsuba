@@ -7,8 +7,10 @@ cd ~/code/crates/nsi-mitsuba
 cargo build --workspace
 ```
 
-`nsi-record` depends on `nsi` **by path**, so it tracks that working
-tree, uncommitted changes included. A red test here may originate there.
+`nsi-record` depends on `nsi` as a git dependency, pinned by
+`Cargo.lock`. Under the `[patch]` override in `README.md` it instead
+tracks a local working tree, uncommitted changes included, and a red
+test here may then originate there.
 
 ## Verification Commands
 

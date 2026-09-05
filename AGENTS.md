@@ -36,12 +36,14 @@ a second backend costs only its own flush. See
 
 ## Local Dependencies
 
-`nsi-record` depends on [`nsi`](https://github.com/virtualritz/nsi) **by
-path** during development, so it tracks that working tree — uncommitted
-changes included. A red test here may originate there. Check both before
-concluding this repo is broken.
+`nsi-record` depends on [`nsi`](https://github.com/virtualritz/nsi) as a
+git dependency, pinned by `Cargo.lock`. The trait seam it relies on
+landed upstream in `a9abbb0` and `b092555`.
 
-The trait seam it relies on landed upstream in `a9abbb0` and `b092555`.
+When working on both at once, use the `[patch]` block in `README.md` to
+point at a local checkout. Under that patch this crate tracks that
+working tree including uncommitted changes, so a red test here may
+originate there.
 
 ## Before Claiming Anything Works
 

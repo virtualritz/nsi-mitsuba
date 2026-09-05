@@ -42,8 +42,10 @@ its absence as permission to mark contract rows `Covered`.
 `time_attrs` separately precisely so this can be fixed, but the API
 decision has not been made. Tracked as `001` T3.5 and `002` TB.1.
 
-**`nsi-record` depends on `nsi` by path.** It tracks that working tree
-including uncommitted changes, so a red test here may originate there.
+**`nsi-record` depends on `nsi` as a git dependency**, pinned by
+`Cargo.lock`. Under the `[patch]` override in `README.md` it instead
+tracks a local working tree, uncommitted changes included, and a red
+test here may then originate there.
 
 **The build machine matters.** Mitsuba pulls Dr.Jit, Embree and LLVM.
 The machine this was developed on has 14 GiB and was driven into swap by

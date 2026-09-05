@@ -31,22 +31,22 @@ matter.
 
 ## Quick Start
 
-This repository depends on [`nsi`](https://github.com/virtualritz/nsi)
-**by path**, so it expects a sibling checkout:
-
 ```bash
-git clone https://github.com/virtualritz/nsi.git
 git clone https://github.com/virtualritz/nsi-mitsuba.git
 cd nsi-mitsuba
 cargo test --workspace
 ```
 
-The layout must be `<parent>/nsi` and `<parent>/nsi-mitsuba`, because
-`crates/nsi-record/Cargo.toml` reaches across with a relative path.
+[`nsi`](https://github.com/virtualritz/nsi) resolves as a git
+dependency, pinned by `Cargo.lock`, so no sibling checkout is needed.
 
-Path deps are deliberate while both repositories move together; the
-trait seam this needs landed in `nsi` only recently. They become version
-deps once `nsi` publishes.
+To develop against a local `nsi`, add to the workspace `Cargo.toml`:
+
+```toml
+[patch."https://github.com/virtualritz/nsi.git"]
+nsi-ffi-wrap = { path = "../nsi/crates/nsi-ffi-wrap" }
+nsi-trait = { path = "../nsi/crates/nsi-trait" }
+```
 
 The stream test needs a working 3Delight, and **fails rather than skips
 without it**. See `specs/001-nsi-scene-recording/quickstart.md`.
