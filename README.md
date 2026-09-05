@@ -45,7 +45,20 @@ live in [`specs/`](specs/); plans are transient and live in
 [`plans/`](plans/). Start with [`specs/README.md`](specs/README.md), and
 read [`HANDOFF.md`](HANDOFF.md) to pick the work up.
 
-Shared standards come from [`.blueprints/`](.blueprints) as a submodule.
+Shared standards come from `.blueprints`, a submodule.
+
+> **`.blueprints` is a private repository.** If you do not have access,
+> clone without it:
+>
+> ```bash
+> git clone https://github.com/virtualritz/nsi-mitsuba.git
+> ```
+>
+> A plain `clone` does not fetch submodules, so nothing breaks. Only
+> `--recurse-submodules` or `git submodule update --init` will fail, on
+> `.blueprints` alone. Nothing in this repository needs it to build or
+> test — it carries shared authoring standards, not code. The
+> conventions it describes are visible in `specs/` regardless.
 
 ## Licence
 

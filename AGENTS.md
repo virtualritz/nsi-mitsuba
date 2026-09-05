@@ -16,6 +16,11 @@ Project-specific specs live in `specs/`. Shared rules and templates live in
 `.blueprints/`.
 <!-- SPEC-DRIVEN DEVELOPMENT END -->
 
+> `.blueprints` is a private submodule. Without access to it, work from
+> `specs/` and this file: the layout, the eight required artifacts per
+> feature, and the contract-matrix rules are all visible there. No code
+> in this repository depends on it.
+
 ## This Repository
 
 Two crates:
